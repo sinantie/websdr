@@ -1,6 +1,7 @@
 const CDP = require('chrome-remote-interface');
 var keypress = require('keypress');
 var verbose = true;
+var delay = 50;
 
 CDP((client) => {
 	
@@ -23,6 +24,21 @@ CDP((client) => {
 			getMode();
 		}
 		
+		function debounce(func, wait, immediate) {
+			var timeout;
+			return function() {
+				var context = this, args = arguments;
+				var later = function() {
+					timeout = null;
+					if (!immediate) func.apply(context, args);
+				};
+				var callNow = immediate && !timeout;
+				clearTimeout(timeout);
+				timeout = setTimeout(later, wait);
+				if (callNow) func.apply(context, args);
+			};
+		};		
+
 		function addKeyPressListener() {
 			// make `process.stdin` begin emitting "keypress" events 
 			keypress(process.stdin);
@@ -109,10 +125,10 @@ CDP((client) => {
 		function keyPressEvent(ch, key) {
 			//console.log('got "keypress"', key);
 			if (key && key.name == 'u') {
-				changeFreq(true, step);
+				freqUp();
 			}
 			else if (key && key.name == 'd') {
-				changeFreq(false, step);
+				freqDown();
 			}
 			else if(key && key.name == 'q') {
 				changeStep(1);
@@ -147,13 +163,30 @@ CDP((client) => {
 				setMode('amsync');
 			}
 			else if(key && key.name == 'k') {
-				setBand(false);
+				bandUp();
 			}
 			else if(key && key.name == 'l') {
-				setBand(true);
+				bandDown();
 			}
 			//		getFrequency();
 		}
+		
+		var freqUp = debounce(function() {
+			changeFreq(true, step);
+		}, delay);
+		
+		var freqDown = debounce(function() {
+			changeFreq(false, step);
+		}, delay);
+
+		function bandUp() {
+			setBand(true);
+		}
+		
+		function bandDown() {
+			setBand(false);
+		}
+
 		addKeyPressListener();
 		intro();
 	}
