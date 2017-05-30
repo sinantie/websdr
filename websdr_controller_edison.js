@@ -30,30 +30,29 @@ CDP((client) => {
 		}
 
 		function initButtons() {
-			btnUp = initButton(47, mraa.DIR_IN, freqUp);
-			btnDown = initButton(44, mraa.DIR_IN, freqDown);
-			console.log('hello');
-			//btnLeft = initButton(165, mraa.DIR_IN, stepLeft);
-			//btnRight = initButton(45, mraa.DIR_IN, stepRight);
-			//btnSelect = initButton(48, mraa.DIR_IN, nextMode);
-			//btnA = initButton(49, mraa.DIR_IN, bandUp);
-			//btnB = initButton(46, mraa.DIR_IN, bandDown);
+			btnUp = initButton(46, freqUp);
+			btnDown = initButton(31, freqDown);
+			btnLeft = initButton(15, stepLeft);
+			btnRight = initButton(45, stepRight);
+			btnSelect = initButton(33, nextMode);
+			btnA = initButton(47, bandUp);
+			btnB = initButton(32, bandDown);
 		}
 	
 		function deregisterButtons() {
 			btnUp.isrExit();
 			btnDown.isrExit();
-			//btnLeft.isrExit();
-			//btnRight.isrExit();
-			//btnSelect.isrExit();
-			//btnA.isrExit();
-			//btnB.isrExit();
+			btnLeft.isrExit();
+			btnRight.isrExit();
+			btnSelect.isrExit();
+			btnA.isrExit();
+			btnB.isrExit();
 		}
 
-		function initButton(pinIn, dirIn, callback) {
+		function initButton(pinIn, callback) {
 			let btn = new mraa.Gpio(pinIn);
-			btn.dir(dirIn);
-			btn.isr(mraa.EDGE_BOTH, callback);
+			btn.dir(mraa.DIR_IN);
+			btn.isr(mraa.EDGE_RISING, callback);
 			return btn;
 		}
 
