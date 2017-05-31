@@ -16,7 +16,7 @@ CDP((client) => {
 		var step = 1;
 		var currentMode = args[3];
 		var currentFrequency = parseFloat(args[2]);
-		const bands = [198, 530, 1800, 3500, 7000, 10100, 14000, 18068, 21000, 24890, 28000];
+		const bands = [142, 522, 1800, 3500, 7000, 10100, 14000, 18068, 21000, 24890, 28000];
 		var currentBand = 0;
 		function intro() {
 			console.log("Step up ['u'] / down ['d'].\nStep size: 1 ['q'], 2 ['w'], 3 ['e'].\nBand down: ['k'], Band up: ['l']\nMode: CW ['z'], LSB ['x'], USB ['c'], AM ['v'], FM ['b'], AMSync ['n'].\nCtrl^C to exit.")

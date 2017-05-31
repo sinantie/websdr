@@ -4,7 +4,8 @@ const mraa = require('mraa');
 //var edison = require('./node_modules/edison-oled/build/Release/edisonnodeaddon');
 var keypress = require('keypress');
 var verbose = true;
-	
+var delay = 50;
+
 CDP((client) => {
 	
 	function killClient() {
@@ -25,8 +26,25 @@ CDP((client) => {
 		var currentBand = 0;
 		var currentModeId = 3;
 		var btnUp, btnDown, btnLeft, btnRight, btnSelect, btnA, btnB;
+
+		function debounce(func, wait, immediate) {
+			var timeout;
+			return function() {
+				var context = this, args = arguments;
+				var later = function() {
+					timeout = null;
+					if (!immediate) func.apply(context, args);
+				};
+				var callNow = immediate && !timeout;
+				clearTimeout(timeout);
+				timeout = setTimeout(later, wait);
+				if (callNow) func.apply(context, args);
+			};
+		};
+
+
 		function initOled() {
-		
+
 		}
 
 		function initButtons() {
@@ -194,40 +212,40 @@ CDP((client) => {
 			//		getFrequency();
 		}
 
-		function freqUp() {
+		function freqUp() = debounce(function() {
 			changeFreq(true, step);
-		}
+		}, delay);
 
-		function freqDown() {
+		function freqDown() = debounce(function() {
 			changeFreq(false, step);
-		}
+		}, delay);
 		
-		function stepLeft() {
+		function stepLeft() = debounce(function() {
 			step = step - 1;
 			step = step < 1 ? MAX_STEP : step;
 			changeStep(step);
-		}
+		}, delay);
 
-		function stepRight() {
+		function stepRight() = debounce(function() {
 			step = step + 1;
 			step = step > MAX_STEP ? 1 : step;
 			changeStep(step);
 		}
 		
-		function nextMode() {
+		function nextMode() = debounce(function() {
 			currentModeId += 1;
 			currentModeId = currentModeId >= modes.length ? 0 : currentModeId;
 			currentMode = modes[currentModeId];
 			setMode([currentMode]);
-		}
+		}, delay);
 
-		function bandUp() {
+		function bandUp() = debounce(function() {
 			setBand(true);
-		}
+		}, delay);
 		
-		function bandDown() {
+		function bandDown() = debounce(function() {
 			setBand(false);
-		}
+		}, delay);
 
 		addKeyPressListener();
 		intro();
