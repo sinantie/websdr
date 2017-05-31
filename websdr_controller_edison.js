@@ -212,38 +212,38 @@ CDP((client) => {
 			//		getFrequency();
 		}
 
-		function freqUp() = debounce(function() {
+		var freqUp = debounce(function() {
 			changeFreq(true, step);
 		}, delay);
 
-		function freqDown() = debounce(function() {
+		var freqDown = debounce(function() {
 			changeFreq(false, step);
 		}, delay);
 		
-		function stepLeft() = debounce(function() {
+		var stepLeft = debounce(function() {
 			step = step - 1;
 			step = step < 1 ? MAX_STEP : step;
 			changeStep(step);
 		}, delay);
 
-		function stepRight() = debounce(function() {
+		var stepRight = debounce(function() {
 			step = step + 1;
 			step = step > MAX_STEP ? 1 : step;
 			changeStep(step);
 		}
 		
-		function nextMode() = debounce(function() {
+		var nextMode = debounce(function() {
 			currentModeId += 1;
 			currentModeId = currentModeId >= modes.length ? 0 : currentModeId;
 			currentMode = modes[currentModeId];
 			setMode([currentMode]);
 		}, delay);
 
-		function bandUp() = debounce(function() {
+		var bandUp = debounce(function() {
 			setBand(true);
 		}, delay);
 		
-		function bandDown() = debounce(function() {
+		var bandDown = debounce(function() {
 			setBand(false);
 		}, delay);
 
