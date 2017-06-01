@@ -65,7 +65,7 @@ CDP((client) => {
 		killClient();
 	} else {
 		var MAX_STEP = 3;
-		var step = 1;
+		var step = 3;
 		var currentMode = args[3];
 		var currentFrequency = parseFloat(args[2]);
 		const bands = [153, 522, 1800, 3500, 7000, 10100, 14000, 18068, 21000, 24890, 28000];
@@ -192,8 +192,6 @@ CDP((client) => {
 
 		function changeStep(stepIn) {
 			step = stepIn;
-			if(verbose)
-				console.log('step = ' + step);
 			printStatus();
 		}
 
@@ -331,12 +329,12 @@ CDP((client) => {
 		intro();
 		addKeyPressListener();
 		
-		initButtons();
 		startScreen();
 		sleep(sleepTime);
 		if(verbose) {
 			console.log('--show main screen');
 		}
+		setFreq(currentFrequency);
 		printStatus();
 		initButtons();
 	}
