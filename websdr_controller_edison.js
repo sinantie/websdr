@@ -6,6 +6,12 @@ var keypress = require('keypress');
 var verbose = true;
 var delay = 50;
 var smallDelay = 10;
+var sleepTime = 2500;
+/*
+screen is 64 X 48
+*/
+var lcdWidth = edison.LCDWIDTH;
+var lcdHeight = edison.LCDHEIGHT;
 
 CDP((client) => {
 	
@@ -23,9 +29,12 @@ CDP((client) => {
 		var currentMode = args[3];
 		var currentFrequency = parseFloat(args[2]);
 		const bands = [153, 522, 1800, 3500, 7000, 10100, 14000, 18068, 21000, 24890, 28000];
+		const bandNames = ['LW', 'MW', '160m', '80m', '40m', '30m', '20m', '18m', '15m', '12m', '10m'];
 		const modes = ['cw', 'lsb', 'usb', 'am', 'fm', 'amsync'];
+		const modeNames = ["CW", "LSB", "USB", "AM", "FM", "AM's"];
 		var currentBand = 0;
 		var currentModeId = 3;
+		var oled;
 		var btnUp, btnDown, btnLeft, btnRight, btnSelect, btnA, btnB;
 
 		function debounce(func, wait, immediate) {
@@ -43,11 +52,73 @@ CDP((client) => {
 			};
 		};
 
-
-		function initOled() {
-
+		function sleep(ms) {
+				var now = new Date().getTime();
+				while(new Date().getTime() < now + ms){ /* do nothing */ }
 		}
 
+		function cleanUp() {
+			oled.clear(0);
+			oled.display();
+		}
+
+		function initOled() {
+			oled = new edison.Oled();
+			if(verbose) {
+				console.log('--setup screen');
+			}
+			oled.begin();
+			oled.clear(0);
+			oled.display();
+			oled.setFontType(0);	
+			lcdWidth = oled.getLCDWidth();
+			lcdHeight = oled.getLCDHeight();
+			if(verbose) {
+				console.log('---width: ' + lcdWidth);
+				console.log('---height: ' + lcdHeight);
+			}
+			
+		}
+
+		function startScreen() {
+			if(verbose) {
+				console.log('--show start');
+			}
+			oled.clear();
+			oled.setCursor(9, 0);
+			oled.print("EDISON's");
+			oled.setCursor(0, 11);
+			oled.print("Web SDR ON");
+			oled.setCursor(0, 23);
+			oled.print("design by:");
+			oled.setCursor(3, 35);
+			oled.setFontType(1);
+			oled.print("SV1ONW"); 
+			oled.display();	
+		}
+
+		function mainScreen(frequency, mode, step, band) {
+			oled.clear(0);
+			oled.setCursor(0, 0);
+			let firstPartFreq = Math.floor(frequency);
+			oled.print(firstPartFreq);
+			// First part of Frequency string
+			oled.setCursor(46, 4);
+			oled.setFontType(0);
+			let secondPartFreq = (frequency % 1).toFixed(3).substring(2)
+			oled.print(secondPartFreq);
+			// Second part of Frequency string
+			oled.setCursor(0, 15)
+			oled.print("Mode: " + mode);
+			//AMsync becomes AM's
+			oled.setCursor(0, 26);
+			oled.print("Band: " + band);
+			oled.setCursor(0, 37);
+			let stepStr = step == 1 ? "+" : (step == 2 ? "++" : "+++");
+			oled.print("Step: " + stepStr);
+			oled.display();
+		}
+		
 		function initButtons() {
 			btnUp = initButton(46, freqUp);
 			btnDown = initButton(31, freqDown);
@@ -94,6 +165,7 @@ CDP((client) => {
 			step = stepIn;
 			if(verbose)
 				console.log('step = ' + step);
+			getFrequency();
 		}
 
 		function changeFreq(up, step) {
@@ -157,6 +229,7 @@ CDP((client) => {
 
 		function getFrequency() {
 			console.log('Frequency = ' + parseFloat(currentFrequency).toFixed(3) + 'kHz');
+			mainScreen(currentFrequency, modeNames[currentMode], step, bandNames[currentBand]);
 		}
 
 		function getMode() {
@@ -252,6 +325,10 @@ CDP((client) => {
 		intro();
 		
 		initOled();
+		initButtons();
+		startScreen();
+		sleep(sleepTime);
+		mainScreen();
 		initButtons();
 	}
 });
