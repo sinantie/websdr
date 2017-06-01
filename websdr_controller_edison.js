@@ -6,7 +6,7 @@ var keypress = require('keypress');
 var verbose = true;
 var delay = 50;
 var smallDelay = 10;
-var sleepTime = 2500;
+var sleepTime = 5000;
 /*
 screen is 64 X 48
 */
@@ -17,6 +17,8 @@ CDP((client) => {
 	
 	function killClient() {
 		client.close();
+		oled.clear(0);
+		oled.display();
 	}
 	
 	var args = process.argv;
@@ -34,7 +36,7 @@ CDP((client) => {
 		const modeNames = ["CW", "LSB", "USB", "AM", "FM", "AM's"];
 		var currentBand = 0;
 		var currentModeId = 3;
-		var oled;
+		var oled = new edison.Oled();
 		var btnUp, btnDown, btnLeft, btnRight, btnSelect, btnA, btnB;
 
 		function debounce(func, wait, immediate) {
@@ -63,7 +65,6 @@ CDP((client) => {
 		}
 
 		function initOled() {
-			oled = new edison.Oled();
 			if(verbose) {
 				console.log('--setup screen');
 			}
@@ -99,8 +100,9 @@ CDP((client) => {
 
 		function mainScreen(frequency, mode, step, band) {
 			oled.clear(0);
-			oled.setCursor(0, 0);
+			oled.setFontType(1);
 			let firstPartFreq = Math.floor(frequency);
+			oled.setCursor(calcOffset(firstPartFreq)*8, 0);
 			oled.print(firstPartFreq);
 			// First part of Frequency string
 			oled.setCursor(46, 4);
@@ -117,6 +119,20 @@ CDP((client) => {
 			let stepStr = step == 1 ? "+" : (step == 2 ? "++" : "+++");
 			oled.print("Step: " + stepStr);
 			oled.display();
+		}
+		
+		function calcOffset(num) {
+			if(num > 0 && num < 10) {
+				return 4;
+			} else if(num >= 10 && num < 100) {
+				return 3;
+			} else if(num >= 100 && num < 1000) {
+				return 2;
+			} else if(num >= 1000 && num < 10000) {
+				return 1;
+			} else if(num >= 10000) {
+				return 0;
+			}
 		}
 		
 		function initButtons() {
@@ -229,7 +245,7 @@ CDP((client) => {
 
 		function getFrequency() {
 			console.log('Frequency = ' + parseFloat(currentFrequency).toFixed(3) + 'kHz');
-			mainScreen(currentFrequency, modeNames[currentMode], step, bandNames[currentBand]);
+			mainScreen(currentFrequency, modeNames[currentModeId], step, bandNames[currentBand]);
 		}
 
 		function getMode() {
@@ -321,14 +337,17 @@ CDP((client) => {
 			setBand(false);
 		}, delay);
 
-		addKeyPressListener();
 		intro();
-		
 		initOled();
+		addKeyPressListener();
+		
 		initButtons();
 		startScreen();
 		sleep(sleepTime);
-		mainScreen();
+		if(verbose) {
+			console.log('--show main screen');
+		}
+		getFrequency();
 		initButtons();
 	}
 });
