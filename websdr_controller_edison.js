@@ -12,13 +12,51 @@ screen is 64 X 48
 */
 var lcdWidth = edison.LCDWIDTH;
 var lcdHeight = edison.LCDHEIGHT;
+var oled = new edison.Oled();
+
+function cleanUp() {
+	oled.clear(0);
+	oled.display();
+}
+
+function initOled() {
+	if(verbose) {
+		console.log('--setup screen');
+	}
+	oled.begin();
+	oled.clear(0);
+	oled.display();
+	oled.setFontType(0);	
+	lcdWidth = oled.getLCDWidth();
+	lcdHeight = oled.getLCDHeight();
+	if(verbose) {
+		console.log('---width: ' + lcdWidth);
+		console.log('---height: ' + lcdHeight);
+	}
+}
+initOled();
+
+function printError(message) {
+	console.log("Err: " + meesage);
+	printErrorOled(message);
+}
+
+function printErrorOled(message) {
+	oled.clear(0);
+	oled.setFontType(1);
+	oled.setCursor(0, 0);
+	oled.print("Error!");
+	oled.setFontType(0);
+	oled.setCursor(0, 15)
+	oled.print(message);
+	oled.display();
+}
 
 CDP((client) => {
 	
 	function killClient() {
 		client.close();
-		oled.clear(0);
-		oled.display();
+		cleanUp();
 	}
 	
 	var args = process.argv;
@@ -36,7 +74,6 @@ CDP((client) => {
 		const modeNames = ["CW", "LSB", "USB", "AM", "FM", "AM's"];
 		var currentBand = 0;
 		var currentModeId = 3;
-		var oled = new edison.Oled();
 		var btnUp, btnDown, btnLeft, btnRight, btnSelect, btnA, btnB;
 
 		function debounce(func, wait, immediate) {
@@ -57,28 +94,6 @@ CDP((client) => {
 		function sleep(ms) {
 				var now = new Date().getTime();
 				while(new Date().getTime() < now + ms){ /* do nothing */ }
-		}
-
-		function cleanUp() {
-			oled.clear(0);
-			oled.display();
-		}
-
-		function initOled() {
-			if(verbose) {
-				console.log('--setup screen');
-			}
-			oled.begin();
-			oled.clear(0);
-			oled.display();
-			oled.setFontType(0);	
-			lcdWidth = oled.getLCDWidth();
-			lcdHeight = oled.getLCDHeight();
-			if(verbose) {
-				console.log('---width: ' + lcdWidth);
-				console.log('---height: ' + lcdHeight);
-			}
-			
 		}
 
 		function startScreen() {
@@ -116,8 +131,7 @@ CDP((client) => {
 			oled.setCursor(0, 26);
 			oled.print("Band: " + band);
 			oled.setCursor(0, 37);
-			let stepStr = step == 1 ? "+" : (step == 2 ? "++" : "+++");
-			oled.print("Step: " + stepStr);
+			oled.print("Step: " + step);
 			oled.display();
 		}
 		
@@ -163,9 +177,8 @@ CDP((client) => {
 		}
 
 		function intro() {
-			console.log("Step up ['u'] / down ['d'].\nStep size: 1 ['q'], 2 ['w'], 3 ['e'].\nBand down: ['k'], Band up: ['l']\nMode: CW ['z'], LSB ['x'], USB ['c'], AM ['v'], FM ['b'], AMSync ['n'].\nCtrl^C to exit.")
-			getFrequency();
-			getMode();
+			console.log("Frequency down ['j'] / up ['k'].\nStep size down: ['h'] / up ['l'].\nBand down: ['i'], Band up: ['o'].\nChange Mode: ['m'] {CW, LSB, USB, AM, FM, AMSync}.\nCtrl^C to exit.");
+			printStatus();
 		}
 		
 		function addKeyPressListener() {
@@ -181,7 +194,7 @@ CDP((client) => {
 			step = stepIn;
 			if(verbose)
 				console.log('step = ' + step);
-			getFrequency();
+			printStatus();
 		}
 
 		function changeFreq(up, step) {
@@ -192,7 +205,7 @@ CDP((client) => {
 					return;
 				}
 				currentFrequency = response.result.value;
-				getFrequency();
+				printStatus();
 			});
 			//if(verbose)
 			//	console.log('stepped ' + (up ? 'up' : 'down'));
@@ -205,7 +218,7 @@ CDP((client) => {
 					return;
 				}
 				currentFrequency = response.result.value;
-				getFrequency();
+				printStatus();
 			});
 		}
 
@@ -227,10 +240,9 @@ CDP((client) => {
 					return;
 				}
 				currentFrequency = response.result.value;
-				getFrequency();
+				printStatus();
 			});
 			currentMode = mode;
-			getMode();
 		}
 		
 		function queryFrequency() {
@@ -243,63 +255,42 @@ CDP((client) => {
 			});
 		}
 
-		function getFrequency() {
-			console.log('Frequency = ' + parseFloat(currentFrequency).toFixed(3) + 'kHz');
-			mainScreen(currentFrequency, modeNames[currentModeId], step, bandNames[currentBand]);
+		function printStatus() {
+			let currentModeName = modeNames[currentModeId];
+			let currentBandName = bandNames[currentBand];
+			let currentStepStr = step == 1 ? "+" : (step == 2 ? "++" : "+++");
+			console.log('Frequency: ' + parseFloat(currentFrequency).toFixed(3) + 'kHz, Band: ' + currentBandName + ', Mode: ' + currentModeName + ', Step: ' + currentStepStr);
+			mainScreen(currentFrequency, currentModeName, currentStepStr, currentBandName);
 		}
-
-		function getMode() {
-			console.log('Mode = ' + currentMode);
-		}
-
+		
 		function keyPressEvent(ch, key) {
 			//console.log('got "keypress"', key);
-			if (key && key.name == 'u') {
+			if (key && key.name == 'k') {
 				freqUp();
 			}
-			else if (key && key.name == 'd') {
+			else if (key && key.name == 'j') {
 				freqDown();
 			}
-			else if(key && key.name == 'q') {
-				changeStep(1);
+			else if(key && key.name == 'h') {
+				stepLeft();
 			}
-			else if(key && key.name == 'w') {
-				changeStep(2);
+			else if(key && key.name == 'l') {
+				stepRight();
 			}
-			else if(key && key.name == 'e') {
-				changeStep(3);
+			else if(key && key.name == 'o') {
+				bandUp();
 			}
-			else if(key && key.name == 'z') {
-				setMode('cw');
+			else if(key && key.name == 'i') {
+				bandDown();
+			}
+			else if(key && key.name == 'm') {
+				nextMode();
 				//queryFrequency();
-			}
-			else if(key && key.name == 'x') {
-				setMode('lsb');
 			}
 			else if (key && key.ctrl && key.name == 'c') {
 				process.stdin.pause();
-				deregisterButtons();
 				killClient();
 			}
-			else if(key && key.name == 'c') {
-				setMode('usb');
-			}
-			else if(key && key.name == 'v') {
-				setMode('am');
-			}
-			else if(key && key.name == 'b') {
-				setMode('fm');
-			}
-			else if(key && key.name == 'n') {
-				setMode('amsync');
-			}
-			else if(key && key.name == 'k') {
-				bandDown();
-			}
-			else if(key && key.name == 'l') {
-				bandUp();
-			}
-			//		getFrequency();
 		}
 
 		var freqUp = debounce(function() {
@@ -338,7 +329,6 @@ CDP((client) => {
 		}, delay);
 
 		intro();
-		initOled();
 		addKeyPressListener();
 		
 		initButtons();
@@ -347,7 +337,10 @@ CDP((client) => {
 		if(verbose) {
 			console.log('--show main screen');
 		}
-		getFrequency();
+		printStatus();
 		initButtons();
 	}
+}).on('error', (err) => {
+  // cannot connect to the remote endpoint
+  printError(err);
 });
