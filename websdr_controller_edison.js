@@ -1,10 +1,11 @@
 'use strict';
 const CDP = require('chrome-remote-interface');
 const mraa = require('mraa');
-//var edison = require('./node_modules/edison-oled/build/Release/edisonnodeaddon');
+var edison = require('../node_modules/edison-oled/build/Release/edisonnodeaddon');
 var keypress = require('keypress');
 var verbose = true;
 var delay = 50;
+var smallDelay = 10;
 
 CDP((client) => {
 	
@@ -21,7 +22,7 @@ CDP((client) => {
 		var step = 1;
 		var currentMode = args[3];
 		var currentFrequency = parseFloat(args[2]);
-		const bands = [142, 522, 1800, 3500, 7000, 10100, 14000, 18068, 21000, 24890, 28000];
+		const bands = [153, 522, 1800, 3500, 7000, 10100, 14000, 18068, 21000, 24890, 28000];
 		const modes = ['cw', 'lsb', 'usb', 'am', 'fm', 'amsync'];
 		var currentBand = 0;
 		var currentModeId = 3;
@@ -214,11 +215,11 @@ CDP((client) => {
 
 		var freqUp = debounce(function() {
 			changeFreq(true, step);
-		}, delay);
+		}, smallDelay);
 
 		var freqDown = debounce(function() {
 			changeFreq(false, step);
-		}, delay);
+		}, smallDelay);
 		
 		var stepLeft = debounce(function() {
 			step = step - 1;
@@ -230,7 +231,7 @@ CDP((client) => {
 			step = step + 1;
 			step = step > MAX_STEP ? 1 : step;
 			changeStep(step);
-		}
+		}, delay);
 		
 		var nextMode = debounce(function() {
 			currentModeId += 1;
