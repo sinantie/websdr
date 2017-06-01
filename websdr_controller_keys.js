@@ -3,6 +3,9 @@ var keypress = require('keypress');
 var verbose = true;
 var delay = 50;
 
+function printError(message) {
+	console.log("Err: " + meesage);
+}
 CDP((client) => {
 	
 	function killClient() {
@@ -11,6 +14,7 @@ CDP((client) => {
 	
 	var args = process.argv;
 	if(args.length != 4) {
+		printError("Invalid execution: node websdr_controller_edison.js freq mode");
 		killClient();
 	} else {
 		var step = 1;
@@ -59,7 +63,7 @@ CDP((client) => {
 			var str = up ? '+' : '-';
 			client.send('Runtime.evaluate', {'expression': 'freqstep(' + str + step + '); nominalfreq();'}, (error, response) => {
 				if(error) {
-					console.log(error);
+					printError(error);
 					return;
 				}
 				currentFrequency = response.result.value;
@@ -72,7 +76,7 @@ CDP((client) => {
 		function setFreq(freq) {
 			client.send('Runtime.evaluate', {'expression': 'setfreq(' + freq + '); nominalfreq();'}, (error, response) => {
 				if(error) {
-					console.log(error);
+					printError(error);
 					return;
 				}
 				currentFrequency = response.result.value;
@@ -94,7 +98,7 @@ CDP((client) => {
 		function setMode(mode) {
 				client.send('Runtime.evaluate', {'expression': 'set_mode(\'' + mode + '\'); nominalfreq();'}, (error, response) => {
 				if(error) {
-					console.log(error);
+					printError(error);
 					return;
 				}
 				currentFrequency = response.result.value;
@@ -107,7 +111,7 @@ CDP((client) => {
 		function queryFrequency() {
 			client.send('Runtime.evaluate', {'expression': 'nominalfreq()'}, (error, response) => {
 				if(error) {
-					console.log(error);
+					printError(error);
 					return;
 				}
 				currentFrequency = response.result.value;
@@ -190,4 +194,7 @@ CDP((client) => {
 		addKeyPressListener();
 		intro();
 	}
+}).on('error', (err) => {
+  // cannot connect to the remote endpoint
+  printError(err);
 });
