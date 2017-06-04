@@ -89,9 +89,10 @@ npm install keypress
 
 Simply run on your Edison:
 ```
-./websdr.sh [frequency] [mode]
+./websdr.sh [websdr_server_url] [frequency] [mode]
 ``` 
-A splash screen should show up for a few seconds and then you should see the main screen. If you don't input any parameters, you should start listening to the pre-defined default station (BBC Radio 4 on 198am) streaming remotely from the station at UTwente. You can change the default WebSDR server by changing the `URL` parameter in the `websdr.sh` script. 
+`websdr_server_url` should be the url of a WebSDR server, such as one listed [here](http://websdr.org/), `frequency` is the frequency to instruct the server to tune on, and `mode` is one of `cw, lsb, usb, am, fm, amsync`.
+A splash screen should show up for a few seconds and then you should see the main screen. If you don't want to input any parameters every time, you can also pre-define them from inside `websdr.sh` script, be setting the appropriate values to `URL, FREQUENCY ` and `MODE` parameters.
 
 You can control the client by changing the frequency, using the up/down buttons on the joystick, left/right buttons for changing the frequency step (+:0.1kHZ, ++:1kHz, +++:2.5/9kHz depending on the mode), select button for changing the mode (CW, LSB, USB, AM, FM, AMsync), A/B buttons (on the right) for changing the bands (LW, MW, 160m, 80m, 40m, 30m, 20m, 18m, 15m, 12m, 10m).
 The same frequency, step, mode, and band info should appear on your terminal too.
