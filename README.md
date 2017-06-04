@@ -108,3 +108,47 @@ You can also run the websdr client from your laptop (Ubuntu Linux 16.04 / Mac OS
 ```
 RUNTIME=websdr_controller_keys.js
 ```
+
+## Autostart
+If you want to make the client start automatically when you boot Edison, follow these steps (adapted from Stepanie Moyerman's blog [post](http://stephaniemoyerman.com/?p=41)):
+- Disable the keyboard event listener by commenting out the following line in `websdr_controller_edison.js`:
+```
+.
+.
+.
+intro();
+// addKeyPressListener();  <--- (line 330)
+		
+startScreen();
+sleep(sleepTime);
+if(verbose) {
+	console.log('--show main screen');
+}
+setFreq(currentFrequency);
+printStatus();
+initButtons();
+.
+.
+.
+```
+- Create a shell script in `/etc/init.d`, by calling it something like `start_websdr.sh` and add the following (make sure you enter the correct path to where you have cloned the client into, and the parameters for the starting script; see above for details):
+```
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:   start_websdr
+# Required-Start:    
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts the websdr client
+### END INIT INFO
+cd path_to_where_websdr_client_is_installed
+./websdr.sh websdr_server_url start_freq start_mode
+```
+- Make the script you have just made executable via `chmod +x start_websdr.sh`
+- Finally, make sure the script is executable every time linux boots:
+```
+$ cd /etc/init.d/
+$ update-rc.d start_websdr.sh defaults
+```
